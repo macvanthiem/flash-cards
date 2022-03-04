@@ -2,6 +2,7 @@ import { useState } from "react";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../configs/firebase";
 import { blue } from "@mui/material/colors";
+import { useHistory } from "react-router-dom";
 import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
@@ -16,6 +17,7 @@ export default function Login() {
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const colorPriamry = blue[700];
+    const history = useHistory();
 
     const switchPage = () => {
         setIsLoginpage(!isLoginPage);
@@ -27,12 +29,14 @@ export default function Login() {
         if (isLoginPage) {
             try {
                 await signInWithEmailAndPassword(auth, email, password);
+                history.push("/");
             } catch (error) {
                 setError(error.message);
             }
         } else {
             try {
                 await createUserWithEmailAndPassword(auth, email, password);
+                history.push("/");
             } catch (error) {
                 setError(error.message);
             }

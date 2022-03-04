@@ -5,8 +5,12 @@ import ROUTE from "../configs/route";
 
 export default function UserRoutes({ component: Component, ...rest }) {
     const user = useContext(AuthContext);
-    console.log(user);
     return (
-        <Route {...rest} render={(props) => (user ? <Component {...props} /> : <Redirect exact to={ROUTE.LOGIN} />)} />
+        <Route
+            {...rest}
+            render={(props) =>
+                !(Object.keys(user).length === 0) ? <Component {...props} /> : <Redirect exact to={ROUTE.LOGIN} />
+            }
+        />
     );
 }

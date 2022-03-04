@@ -11,10 +11,12 @@ import AccountCircle from "@mui/icons-material/AccountCircle";
 import MenuItem from "@mui/material/MenuItem";
 import Menu from "@mui/material/Menu";
 import { AuthContext } from "../contexts/AuthProvider";
+import { useHistory } from "react-router-dom";
 
 export default function MenuAppBar() {
     const [anchorEl, setAnchorEl] = useState(null);
     const user = useContext(AuthContext);
+    const history = useHistory();
 
     const handleMenu = (event) => {
         setAnchorEl(event.currentTarget);
@@ -27,6 +29,7 @@ export default function MenuAppBar() {
     const handleLogout = async () => {
         setAnchorEl(null);
         await signOut(auth);
+        history.push("/login");
     };
 
     return (
