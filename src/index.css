@@ -1,0 +1,17 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.link {
+    text-decoration: none;
+}
+
+.link-white {
+    color: #ffffff;
+}
+
+.link-black {
+    color: #000000de;
+}
