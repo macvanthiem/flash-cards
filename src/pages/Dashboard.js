@@ -1,9 +1,19 @@
-import { Link } from "react-router-dom";
-export default function Dashboard() {
+import useFirestore from "../hooks/useFirestore";
+import Box from "@mui/material/Box";
+import Sidebar from "../components/Sidebar";
+import Content from "../components/Content";
+import Loading from "../components/Loading";
+
+export default function PermanentDrawerLeft() {
+    const { lessons, currLesson, setCurrLesson, loading } = useFirestore();
+
+    if (loading) {
+        return <Loading />;
+    }
     return (
-        <>
-            <h1>Dashboard</h1>
-            <Link to="/abcb">abc</Link>
-        </>
+        <Box sx={{ display: "flex" }}>
+            <Sidebar lessons={lessons} setCurrLesson={setCurrLesson} />
+            <Content currLesson={currLesson} />
+        </Box>
     );
 }
