@@ -4,7 +4,6 @@ import { query, collection, onSnapshot } from "firebase/firestore";
 
 export default function useFirestore() {
     const [lessons, setLessons] = useState([]);
-    const [currLesson, setCurrLesson] = useState({});
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
@@ -16,14 +15,11 @@ export default function useFirestore() {
                 id: doc.id,
             }));
             setLessons(data);
-            if (data.length > 0) {
-                setCurrLesson(data[0]);
-            }
             setLoading(false);
         });
 
         return unsub;
     }, []);
 
-    return { lessons, currLesson, setCurrLesson, loading };
+    return { lessons, loading };
 }

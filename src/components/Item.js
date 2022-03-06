@@ -12,7 +12,7 @@ export default function Item({ lesson, setCurrLesson }) {
         <Card sx={{ cursor: "pointer" }} onClick={() => setCurrLesson(lesson)}>
             <CardContent>
                 <Box sx={{ display: "flex", justifyContent: "center", marginBottom: 3, paddingTop: 1 }}>
-                    <AvatarGroup max={6}>
+                    <AvatarGroup max={5}>
                         {lesson?.cards.map((card, index) => (
                             <Avatar key={index} alt={card.desc} src={card.imgUrl} sx={{ width: 56, height: 56 }} />
                         ))}

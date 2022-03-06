@@ -89,12 +89,10 @@ export default function Login() {
                     </>
                 )}
             </Box>
-            {error ? (
+            {error && (
                 <Alert severity="error" sx={{ marginTop: 3 }}>
                     {error}
                 </Alert>
-            ) : (
-                <></>
             )}
         </Box>
     );

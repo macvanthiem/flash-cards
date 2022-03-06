@@ -1,68 +1,159 @@
+import { useState } from "react";
+import { styled } from "@mui/material/styles";
+import { uploadImg } from "../firebase/storage";
+import { getDownloadURL } from "firebase/storage";
+import { updateDocument } from "../firebase/firestore";
+import TableData from "./TableData";
+import Progress from "./Progress";
 import PropTypes from "prop-types";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import Paper from "@mui/material/Paper";
-import Card from "@mui/material/Card";
-import CardMedia from "@mui/material/CardMedia";
 import Button from "@mui/material/Button";
+import AddIcon from "@mui/icons-material/Add";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
+import TextField from "@mui/material/TextField";
+import Alert from "@mui/material/Alert";
 import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
+import CancelIcon from "@mui/icons-material/Cancel";
+
+const Input = styled("input")({
+    display: "none",
+});
 
 export default function Content({ currLesson }) {
+    const [openAddDialog, setOpenAddDialog] = useState(false);
+    const [desc, setDesc] = useState("");
+    const [imgFile, setImgFile] = useState(null);
+    const [progress, setProgress] = useState(0);
+    const [error, setError] = useState("");
+    const [title, setTitle] = useState("");
+    const [edit, setEdit] = useState(false);
+
+    const openEdit = () => {
+        setTitle(currLesson.title);
+        setEdit(true);
+    };
+
+    const handleKeyPress = (event) => {
+        if (event.key === "Enter") {
+            updateDocument("lessons", currLesson.id, { title: title });
+            setEdit(false);
+        }
+    };
+
+    const handleAddCard = () => {
+        const imgName = `${Date.now()}-${imgFile.name}`;
+        const uploadTask = uploadImg(imgFile, imgName);
+
+        uploadTask.on(
+            "state_changed",
+            (snapshot) => {
+                const prog = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+                setProgress(prog);
+            },
+            (error) => setError(error.message),
+            () => {
+                getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+                    const cards = [...currLesson.cards];
+                    cards.push({ desc: desc, imgName: imgName, imgUrl: downloadURL });
+                    updateDocument("lessons", currLesson.id, { cards: cards });
+                    setDesc("");
+                    setImgFile(null);
+                    setProgress(0);
+                    setOpenAddDialog(false);
+                });
+            }
+        );
+    };
+
     if (Object.keys(currLesson).length === 0) {
         return (
-            <Typography variant="h4" component="h1" marginBottom={3} align="center">
-                No data to display!
+            <Typography variant="h4" component="h1" marginLeft={3} marginTop={3}>
+                Manage Lessons
             </Typography>
         );
     }
     return (
-        <Box component="main" sx={{ flexGrow: 1, bgcolor: "background.default", p: 3 }}>
-            <Typography variant="h4" component="h1" marginBottom={3}>
-                {currLesson.title}
-            </Typography>
-            <TableContainer component={Paper}>
-                <Table sx={{ minWidth: 650 }} aria-label="simple table">
-                    <TableHead>
-                        <TableRow>
-                            <TableCell align="center">#</TableCell>
-                            <TableCell align="center">Title</TableCell>
-                            <TableCell align="center">Image</TableCell>
-                            <TableCell align="center">Actions</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {currLesson.cards.map((card, i) => (
-                            <TableRow key={i} sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
-                                <TableCell align="center" component="th" scope="row">
-                                    {++i}
-                                </TableCell>
-                                <TableCell align="center">{card.desc}</TableCell>
-                                <TableCell align="center">
-                                    <Card sx={{ maxWidth: 180, margin: "0 auto" }}>
-                                        <CardMedia component="img" height="120" image={card.imgUrl} alt={card.desc} />
-                                    </Card>
-                                </TableCell>
-                                <TableCell align="center">
-                                    <Button variant="outlined" sx={{ marginRight: 2 }}>
-                                        <EditIcon />
-                                    </Button>
-                                    <Button variant="outlined" color="error">
-                                        <DeleteIcon />
-                                    </Button>
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </TableContainer>
-        </Box>
+        <>
+            <Box component="main" sx={{ flexGrow: 1, bgcolor: "background.default", p: 3 }}>
+                <Box sx={{ marginBottom: 3, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <Box sx={{ display: "flex", justifyContent: "start", alignItems: "center" }}>
+                        {!edit ? (
+                            <Typography variant="h4" component="h1" marginRight={3}>
+                                {currLesson.title}
+                            </Typography>
+                        ) : (
+                            <TextField
+                                autoFocus
+                                label="Title"
+                                variant="standard"
+                                value={title}
+                                onChange={(event) => setTitle(event.target.value)}
+                                sx={{ marginRight: 3 }}
+                                onKeyPress={handleKeyPress}
+                            />
+                        )}
+
+                        {!edit ? (
+                            <Button variant="text" onClick={openEdit}>
+                                <EditIcon fontSize="large" />
+                            </Button>
+                        ) : (
+                            <Button variant="text" onClick={() => setEdit(false)}>
+                                <CancelIcon fontSize="large" />
+                            </Button>
+                        )}
+                    </Box>
+
+                    <Button variant="outlined" startIcon={<AddIcon />} onClick={() => setOpenAddDialog(true)}>
+                        Add new card
+                    </Button>
+                </Box>
+                <TableData currLesson={currLesson} />
+            </Box>
+            <Dialog open={openAddDialog} onClose={() => setOpenAddDialog(false)} maxWidth="xs" fullWidth={true}>
+                <DialogTitle>Add new flash card </DialogTitle>
+                <DialogContent>
+                    <TextField
+                        autoFocus
+                        fullWidth
+                        label="Description"
+                        variant="standard"
+                        value={desc}
+                        onChange={(event) => setDesc(event.target.value)}
+                    />
+
+                    <label htmlFor="contained-button-file">
+                        <Input
+                            accept="image/*"
+                            id="contained-button-file"
+                            type="file"
+                            onChange={(event) => setImgFile(event.target.files[0])}
+                        />
+                        <Button variant="contained" component="span" sx={{ marginTop: 3 }}>
+                            Upload Image
+                        </Button>
+                    </label>
+
+                    {progress !== 0 && <Progress value={progress} />}
+
+                    {error && (
+                        <Alert severity="error" sx={{ marginTop: 3 }}>
+                            {error}
+                        </Alert>
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setOpenAddDialog(false)}>Cancel</Button>
+                    <Button onClick={handleAddCard} disabled={desc === "" || imgFile === null}>
+                        Add
+                    </Button>
+                </DialogActions>
+            </Dialog>
+        </>
     );
 }
 

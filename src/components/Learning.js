@@ -37,7 +37,11 @@ export default function Learning({ currLesson, setCurrLesson }) {
                     {currLesson?.title}
                 </Typography>
             </Box>
-            {!completed ? (
+            {currLesson.cards.length === 0 ? (
+                <Typography variant="h4" component="h1" marginBottom={3} align="center">
+                    No data to display!
+                </Typography>
+            ) : !completed ? (
                 <FlashCard card={currLesson.cards[index]} handleNext={handleNext} />
             ) : (
                 <Completed setCurrLesson={setCurrLesson} />

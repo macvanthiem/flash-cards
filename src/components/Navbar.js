@@ -71,11 +71,14 @@ export default function MenuAppBar() {
                                 onClose={handleClose}
                             >
                                 <MenuItem disabled>{user.email}</MenuItem>
-                                <MenuItem onClick={handleClose}>
-                                    <Link className="link link-black" to="/dashboard">
-                                        Dashboard
-                                    </Link>
-                                </MenuItem>
+                                {user?.isAdmin && (
+                                    <MenuItem onClick={handleClose}>
+                                        <Link className="link link-black" to="/dashboard">
+                                            Dashboard
+                                        </Link>
+                                    </MenuItem>
+                                )}
+
                                 <MenuItem onClick={handleLogout}>Logout</MenuItem>
                             </Menu>
                         </div>

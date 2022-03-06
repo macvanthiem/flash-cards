@@ -12,7 +12,7 @@ export default function Home() {
     if (loading) {
         return <Loading />;
     }
-    console.log(currLesson);
+
     return (
         <Container maxWidth="lg">
             {Object.keys(currLesson).length === 0 ? (
