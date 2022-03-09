@@ -2,6 +2,9 @@ import { useState, useContext } from "react";
 import { signOut } from "firebase/auth";
 import { auth } from "../configs/firebase";
 import { Link } from "react-router-dom";
+import { AuthContext } from "../contexts/AuthProvider";
+import { useHistory } from "react-router-dom";
+import { toast } from "react-toastify";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
@@ -10,8 +13,6 @@ import IconButton from "@mui/material/IconButton";
 import AccountCircle from "@mui/icons-material/AccountCircle";
 import MenuItem from "@mui/material/MenuItem";
 import Menu from "@mui/material/Menu";
-import { AuthContext } from "../contexts/AuthProvider";
-import { useHistory } from "react-router-dom";
 
 export default function MenuAppBar() {
     const [anchorEl, setAnchorEl] = useState(null);
@@ -30,6 +31,7 @@ export default function MenuAppBar() {
         setAnchorEl(null);
         await signOut(auth);
         history.push("/login");
+        toast.success("Logged out successfully!");
     };
 
     return (

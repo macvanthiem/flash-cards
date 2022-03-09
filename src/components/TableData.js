@@ -3,6 +3,7 @@ import { styled } from "@mui/material/styles";
 import { uploadImg, deleteImg } from "../firebase/storage";
 import { getDownloadURL } from "firebase/storage";
 import { updateDocument } from "../firebase/firestore";
+import { toast } from "react-toastify";
 import PropTypes from "prop-types";
 import Progress from "./Progress";
 import Table from "@mui/material/Table";
@@ -22,7 +23,8 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import TextField from "@mui/material/TextField";
-import Alert from "@mui/material/Alert";
+import Box from "@mui/material/Box";
+import Tooltip from "@mui/material/Tooltip";
 
 const Input = styled("input")({
     display: "none",
@@ -33,12 +35,13 @@ export default function TableData({ currLesson }) {
     const [desc, setDesc] = useState("");
     const [imgFile, setImgFile] = useState(null);
     const [progress, setProgress] = useState(0);
-    const [error, setError] = useState("");
     const [currCard, setCurrCard] = useState({});
+    const [previewImg, setPreviewImg] = useState("");
 
     const handleEdit = (card) => {
         setCurrCard(card);
         setDesc(card.desc);
+        setPreviewImg(card.imgUrl);
         setOpenUpdateDialog(true);
     };
 
@@ -47,7 +50,23 @@ export default function TableData({ currLesson }) {
             deleteImg(card.imgName);
             const cards = currLesson.cards.filter((_card) => _card.imgName !== card.imgName);
             updateDocument("lessons", currLesson.id, { cards: cards });
+            toast.success("Success!");
         }
+    };
+
+    const handlePreview = (event) => {
+        setImgFile(event.target.files[0]);
+        const reader = new FileReader();
+        reader.onload = () => {
+            if (reader.readyState === 2) {
+                setPreviewImg(reader.result);
+            }
+        };
+        reader.readAsDataURL(event.target.files[0]);
+    };
+
+    const checkDesc = () => {
+        return currLesson.cards.filter((card) => card.desc === desc).length !== 0 && desc !== currCard.desc;
     };
 
     const handleUpdateCard = () => {
@@ -61,7 +80,7 @@ export default function TableData({ currLesson }) {
                     const prog = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
                     setProgress(prog);
                 },
-                (error) => setError(error.message),
+                (error) => toast.success(error.message),
                 () => {
                     getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
                         deleteImg(currCard.imgName);
@@ -78,6 +97,7 @@ export default function TableData({ currLesson }) {
                         setImgFile(null);
                         setProgress(0);
                         setOpenUpdateDialog(false);
+                        toast.success("Success!");
                     });
                 }
             );
@@ -93,6 +113,7 @@ export default function TableData({ currLesson }) {
             setImgFile(null);
             setProgress(0);
             setOpenUpdateDialog(false);
+            toast.success("Success!");
         }
     };
     return (
@@ -120,12 +141,20 @@ export default function TableData({ currLesson }) {
                                     </Card>
                                 </TableCell>
                                 <TableCell align="center">
-                                    <Button variant="outlined" sx={{ marginRight: 2 }} onClick={() => handleEdit(card)}>
-                                        <EditIcon />
-                                    </Button>
-                                    <Button variant="outlined" color="error" onClick={() => handleDelete(card)}>
-                                        <DeleteIcon />
-                                    </Button>
+                                    <Tooltip title="Edit" arrow>
+                                        <Button
+                                            variant="outlined"
+                                            sx={{ marginRight: 2 }}
+                                            onClick={() => handleEdit(card)}
+                                        >
+                                            <EditIcon />
+                                        </Button>
+                                    </Tooltip>
+                                    <Tooltip title="Delete" arrow>
+                                        <Button variant="outlined" color="error" onClick={() => handleDelete(card)}>
+                                            <DeleteIcon />
+                                        </Button>
+                                    </Tooltip>
                                 </TableCell>
                             </TableRow>
                         ))}
@@ -143,30 +172,32 @@ export default function TableData({ currLesson }) {
                         value={desc}
                         onChange={(event) => setDesc(event.target.value)}
                     />
-
-                    <label htmlFor="contained-button-file">
-                        <Input
-                            accept="image/*"
-                            id="contained-button-file"
-                            type="file"
-                            onChange={(event) => setImgFile(event.target.files[0])}
-                        />
-                        <Button variant="contained" component="span" sx={{ marginTop: 3 }}>
-                            Upload Image
-                        </Button>
-                    </label>
-
+                    <Card sx={{ maxWidth: 180, margin: "0 auto", marginTop: 3 }}>
+                        <CardMedia component="img" height="120" image={previewImg} alt="preview" />
+                    </Card>
+                    <Box textAlign={"center"}>
+                        <label htmlFor="contained-button-file">
+                            <Input
+                                accept="image/*"
+                                id="contained-button-file"
+                                type="file"
+                                onChange={(event) => handlePreview(event)}
+                            />
+                            <Button variant="contained" component="span" sx={{ marginTop: 3 }}>
+                                Upload Image
+                            </Button>
+                        </label>
+                    </Box>
                     {progress !== 0 && <Progress value={progress} />}
-
-                    {error && (
-                        <Alert severity="error" sx={{ marginTop: 3 }}>
-                            {error}
-                        </Alert>
-                    )}
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => setOpenUpdateDialog(false)}>Cancel</Button>
-                    <Button onClick={handleUpdateCard}>Update</Button>
+                    <Button
+                        onClick={handleUpdateCard}
+                        disabled={desc === "" || (desc === currCard.desc && imgFile === null) || checkDesc()}
+                    >
+                        Update
+                    </Button>
                 </DialogActions>
             </Dialog>
         </>

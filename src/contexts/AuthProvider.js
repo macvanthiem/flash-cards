@@ -1,7 +1,7 @@
 import { onAuthStateChanged } from "@firebase/auth";
 import { useEffect, useState, createContext } from "react";
 import { auth } from "../configs/firebase";
-import ADMIN from "../configs/admin";
+import APP from "../configs/app";
 import Loading from "../components/Loading";
 
 export const AuthContext = createContext();
@@ -13,7 +13,7 @@ const AuthProvider = ({ children }) => {
         const unsubcribed = onAuthStateChanged(auth, (_user) => {
             if (_user) {
                 const { email } = _user;
-                ADMIN.EMAIL === email
+                APP.EMAIL_ADMIN === email
                     ? setUser({ email: email, isAdmin: true })
                     : setUser({ email: email, isAdmin: false });
 

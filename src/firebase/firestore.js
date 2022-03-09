@@ -1,5 +1,5 @@
 import { db } from "../configs/firebase";
-import { collection, addDoc, doc, updateDoc } from "firebase/firestore";
+import { collection, addDoc, doc, updateDoc, deleteDoc } from "firebase/firestore";
 
 export const addDocument = async (_collection, payload) => {
     try {
@@ -13,6 +13,15 @@ export const addDocument = async (_collection, payload) => {
 export const updateDocument = async (_collection, docId, payload) => {
     try {
         await updateDoc(doc(db, _collection, docId), payload);
+        return { status: 1 };
+    } catch (error) {
+        return { status: 0 };
+    }
+};
+
+export const deleteDocument = async (_collection, docId) => {
+    try {
+        await deleteDoc(doc(db, _collection, docId));
         return { status: 1 };
     } catch (error) {
         return { status: 0 };

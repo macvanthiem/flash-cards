@@ -25,7 +25,7 @@ export default function PermanentDrawerLeft() {
     return (
         <Box sx={{ display: "flex" }}>
             <Sidebar lessons={lessons} setCurrLesson={setCurrLesson} />
-            <Content currLesson={currLesson} />
+            <Content lessons={lessons} currLesson={currLesson} setCurrLesson={setCurrLesson} />
         </Box>
     );
 }

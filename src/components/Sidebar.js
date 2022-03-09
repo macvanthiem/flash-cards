@@ -2,6 +2,7 @@ import { useState } from "react";
 import { addDocument } from "../firebase/firestore";
 import { Link } from "react-router-dom";
 import { blue } from "@mui/material/colors";
+import { toast } from "react-toastify";
 import PropTypes from "prop-types";
 import Drawer from "@mui/material/Drawer";
 import Toolbar from "@mui/material/Toolbar";
@@ -28,15 +29,24 @@ export default function Sidebar({ lessons, setCurrLesson }) {
     const drawerWidth = 240;
 
     const handleKeyPress = (event) => {
-        if (event.key === "Enter") {
-            handleAddList();
+        if (event.key === "Enter" && !checkTitle()) {
+            handleAddLesson();
         }
     };
 
-    const handleAddList = () => {
-        addDocument("lessons", { title: title, cards: [] });
-        setTitle("");
-        setOpenDialog(false);
+    const checkTitle = () => {
+        return lessons.filter((lesson) => lesson.title === title).length !== 0;
+    };
+
+    const handleAddLesson = async () => {
+        const { status } = await addDocument("lessons", { title: title, cards: [], isPublic: false });
+        if (status === 1) {
+            setTitle("");
+            setOpenDialog(false);
+            toast.success("Success!");
+        } else {
+            toast.error("Fail!");
+        }
     };
 
     return (
@@ -81,7 +91,7 @@ export default function Sidebar({ lessons, setCurrLesson }) {
                 </List>
                 <Divider />
             </Drawer>
-            <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="xs" fullWidth={true}>
+            <Dialog open={openDialog} maxWidth="xs" fullWidth={true}>
                 <DialogTitle>Add new lesson </DialogTitle>
                 <DialogContent>
                     <TextField
@@ -96,7 +106,7 @@ export default function Sidebar({ lessons, setCurrLesson }) {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
-                    <Button onClick={handleAddList} disabled={title === ""}>
+                    <Button onClick={handleAddLesson} disabled={title === "" || checkTitle()}>
                         Add
                     </Button>
                 </DialogActions>
